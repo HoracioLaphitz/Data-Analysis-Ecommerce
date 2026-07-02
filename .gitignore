@@ -6,8 +6,15 @@ __pycache__/
 .env
 data/*.csv
 data/*.db
+# deploy artifacts: slim mart and trained model are versioned so
+# Streamlit Community Cloud can run the app from a fresh clone
+!data/olist_mart_slim.db
 models/*.pkl
 models/*.json
+!models/model.pkl
+!models/metrics.json
+!models/feature_importance.json
+!models/drift_reference.json
 
 # root .gitignore blocks *.sql globally; this project versions cleaning SQL
 !sql/*.sql

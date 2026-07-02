@@ -13,6 +13,10 @@ from src.mart import SalesMart
 from src.segmentation import RFMBuilder, CohortBuilder, compute_kpis
 
 DB_PATH = os.path.join("data", "olist_mart.db")
+if not os.path.exists(DB_PATH):
+    # Fresh clone / Streamlit Cloud: fall back to the versioned slim mart
+    # (same star schema and views, raw/staging tables stripped).
+    DB_PATH = os.path.join("data", "olist_mart_slim.db")
 
 st.set_page_config(
     page_title="AI Sales Assistant",

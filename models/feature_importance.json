@@ -1,0 +1,14 @@
+{
+  "recency_days": 0.46481984853744507,
+  "frequency": 0.08552129566669464,
+  "monetary_total": 0.06096705049276352,
+  "monetary_aov": 0.05663708969950676,
+  "tenure_days": 0.06721541285514832,
+  "avg_delivery_delay_days": 0.05081630125641823,
+  "pct_late": 0.05018806830048561,
+  "avg_distance_km": 0.05368053540587425,
+  "avg_review_score": 0.05322985351085663,
+  "pct_low_review": 0.05692457780241966,
+  "category_diversity": 0.0,
+  "has_reviews": 0.0
+}
