@@ -74,6 +74,11 @@ class CohortBuilder:
         active["retention_pct"] = active["active_customers"] / active["cohort_size"] * 100
 
         matrix = active.pivot(index="cohort_month", columns="month_offset", values="retention_pct")
+        # The pivot only creates columns for offsets that were actually
+        # observed; a short-history mart would silently drop later offsets.
+        # Reindex to the full window so every offset exists (as NaN when no
+        # cohort has reached it yet).
+        matrix = matrix.reindex(columns=range(window_months + 1))
 
         # A cohort that hasn't had enough elapsed time to reach a given month
         # offset must show as "no data yet" (NaN), never as "0% retained" —
