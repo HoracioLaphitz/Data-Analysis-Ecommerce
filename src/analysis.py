@@ -75,3 +75,53 @@ def distance_delay_sample(df: pd.DataFrame, n: int = 5000, seed: int = 42) -> pd
     if len(cols) <= n:
         return cols.reset_index(drop=True)
     return cols.sample(n, random_state=seed).reset_index(drop=True)
+
+
+def review_distribution(df: pd.DataFrame) -> pd.DataFrame:
+    return (
+        df.dropna(subset=["review_score"])
+        .astype({"review_score": int})
+        .groupby("review_score")["order_id"].count()
+        .reset_index()
+        .rename(columns={"order_id": "orders"})
+        .sort_values("review_score")
+        .reset_index(drop=True)
+    )
+
+
+def delay_by_review_score(df: pd.DataFrame) -> pd.DataFrame:
+    return (
+        df.dropna(subset=["review_score"])
+        .astype({"review_score": int})
+        .groupby("review_score")["delivery_delay_days"].mean()
+        .reset_index()
+        .rename(columns={"delivery_delay_days": "avg_delay"})
+        .sort_values("review_score")
+        .reset_index(drop=True)
+    )
+
+
+def monthly_aov(df: pd.DataFrame) -> pd.DataFrame:
+    return (
+        df.assign(month=df["order_purchase_timestamp"].dt.to_period("M").astype(str))
+        .groupby("month")
+        .agg(revenue=("payment_value", "sum"), orders=("order_id", "nunique"))
+        .assign(aov=lambda d: (d["revenue"] / d["orders"]).round(2))
+        .reset_index()[["month", "aov"]]
+        .sort_values("month")
+        .reset_index(drop=True)
+    )
+
+
+def freight_share_by_category(df: pd.DataFrame, top: int = 10) -> pd.DataFrame:
+    agg = (
+        df.groupby("product_category_name_english")
+        .agg(revenue=("payment_value", "sum"), freight=("freight_value", "sum"))
+    )
+    top_cats = agg.nlargest(top, "revenue")
+    return (
+        top_cats.assign(freight_share=(top_cats["freight"] / top_cats["revenue"] * 100).round(1))
+        .reset_index()[["product_category_name_english", "freight_share"]]
+        .sort_values("freight_share", ascending=False)
+        .reset_index(drop=True)
+    )
