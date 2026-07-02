@@ -1,0 +1,3 @@
+product_id,product_category_name,product_weight_g,product_length_cm,product_height_cm,product_width_cm
+p1,eletronicos,500,20,10,15
+p2,moveis_decoracao,2000,80,60,40

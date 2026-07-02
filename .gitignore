@@ -1,0 +1,16 @@
+reports/
+*.db-wal
+*.db-shm
+__pycache__/
+.pytest_cache/
+.env
+data/*.csv
+data/*.db
+models/*.pkl
+models/*.json
+
+# root .gitignore blocks *.sql globally; this project versions cleaning SQL
+!sql/*.sql
+
+# root .gitignore blocks *.md globally; this project versions its data dictionary
+!docs/data-dictionary.md
