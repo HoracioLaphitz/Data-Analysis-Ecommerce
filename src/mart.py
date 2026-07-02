@@ -35,6 +35,17 @@ class SalesMart:
             parse_dates=["order_purchase_timestamp"],
         )
 
+    def customer_orders(self) -> pd.DataFrame:
+        return self._read(
+            """
+            SELECT f.order_id, c.customer_unique_id,
+                   f.order_purchase_timestamp, f.payment_value
+            FROM fact_orders f
+            JOIN dim_customers c ON f.customer_id = c.customer_id
+            """,
+            parse_dates=["order_purchase_timestamp"],
+        )
+
     def seller_orders(self) -> pd.DataFrame:
         return self._read(
             """
