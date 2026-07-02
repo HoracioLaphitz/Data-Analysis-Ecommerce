@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project
 
-AI Sales Assistant — a Streamlit app for natural-language Q&A and analytics over the Olist Brazilian E-Commerce dataset (~100k orders), plus a seller churn-prediction pipeline (XGBoost + rules-based recommendations).
+AI Sales Assistant — a Streamlit analytics app over the Olist Brazilian E-Commerce dataset (~100k orders): sales/logistics/reviews dashboards, RFM + cohort customer segmentation, and a seller churn-prediction pipeline (XGBoost + rules-based recommendations).
 
 ## Commands
 

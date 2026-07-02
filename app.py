@@ -22,7 +22,7 @@ st.set_page_config(
 
 st.title("🤖 AI Sales Assistant")
 st.caption(
-    "Olist Brazilian E-Commerce · LangChain + NVIDIA NIM · "
+    "Olist Brazilian E-Commerce · Analytics & Churn Prediction · "
     "[Code on GitHub](https://github.com/HoracioLaphitz/ai-sales-assistant)"
 )
 
