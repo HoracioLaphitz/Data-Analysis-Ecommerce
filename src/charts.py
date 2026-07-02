@@ -36,3 +36,40 @@ def heatmap_chart(matrix: pd.DataFrame, title: str) -> Figure:
     )
     fig.update_layout(plot_bgcolor="rgba(0,0,0,0)", paper_bgcolor="rgba(0,0,0,0)")
     return fig
+
+
+def histogram_chart(df: pd.DataFrame, x: str, title: str) -> Figure:
+    fig = px.histogram(df, x=x, title=title, color_discrete_sequence=["#1f77b4"])
+    fig.update_layout(plot_bgcolor="rgba(0,0,0,0)", paper_bgcolor="rgba(0,0,0,0)",
+                      showlegend=False)
+    return fig
+
+
+def scatter_chart(df: pd.DataFrame, x: str, y: str, title: str) -> Figure:
+    fig = px.scatter(df, x=x, y=y, title=title, opacity=0.3)
+    fig.update_layout(plot_bgcolor="rgba(0,0,0,0)", paper_bgcolor="rgba(0,0,0,0)")
+    return fig
+
+
+def feature_importance_chart(importance: dict) -> Figure:
+    items = sorted(importance.items(), key=lambda kv: kv[1])
+    df = pd.DataFrame(items, columns=["feature", "importance"])
+    fig = px.bar(df, x="importance", y="feature", orientation="h",
+                 title="Feature importance", color="importance",
+                 color_continuous_scale="Blues")
+    fig.update_layout(showlegend=False, coloraxis_showscale=False,
+                      plot_bgcolor="rgba(0,0,0,0)", paper_bgcolor="rgba(0,0,0,0)")
+    return fig
+
+
+def confusion_matrix_chart(matrix) -> Figure:
+    fig = px.imshow(
+        matrix,
+        x=["Pred: active", "Pred: churned"],
+        y=["Real: active", "Real: churned"],
+        color_continuous_scale="Blues",
+        text_auto=True,
+        title="Confusion matrix",
+    )
+    fig.update_layout(plot_bgcolor="rgba(0,0,0,0)", paper_bgcolor="rgba(0,0,0,0)")
+    return fig

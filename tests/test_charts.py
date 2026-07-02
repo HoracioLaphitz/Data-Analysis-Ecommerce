@@ -42,3 +42,15 @@ def test_confusion_matrix_chart():
     from src.charts import confusion_matrix_chart
     fig = confusion_matrix_chart([[10, 2], [3, 5]])
     assert isinstance(fig, go.Figure)
+
+
+def test_histogram_chart_returns_figure(sample_df):
+    from src.charts import histogram_chart
+    fig = histogram_chart(sample_df, x="delivery_delay_days", title="Delays")
+    assert isinstance(fig, Figure)
+
+
+def test_scatter_chart_returns_figure(sample_df):
+    from src.charts import scatter_chart
+    fig = scatter_chart(sample_df, x="distance_km", y="delivery_delay_days", title="Distance vs delay")
+    assert isinstance(fig, Figure)
