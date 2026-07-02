@@ -44,3 +44,44 @@ class RFMBuilder:
         if r <= 2 and f <= 2:
             return "Hibernating"
         return "Need Attention"
+
+
+class CohortBuilder:
+    """Monthly cohort retention matrix, keyed by month of first purchase
+    (customer_unique_id grain)."""
+
+    def build(self, mart, window_months: int = 12) -> pd.DataFrame:
+        orders = mart.customer_orders()
+        orders = orders.assign(
+            order_month=orders["order_purchase_timestamp"].dt.to_period("M")
+        )
+        first_month = orders.groupby("customer_unique_id")["order_month"].min()
+        orders = orders.join(first_month.rename("cohort_month"), on="customer_unique_id")
+        orders["month_offset"] = (orders["order_month"] - orders["cohort_month"]).apply(lambda p: p.n)
+        orders = orders[orders["month_offset"].between(0, window_months)]
+
+        cohort_sizes = (
+            orders[orders["month_offset"] == 0]
+            .groupby("cohort_month")["customer_unique_id"].nunique()
+        )
+
+        active = (
+            orders.groupby(["cohort_month", "month_offset"])["customer_unique_id"]
+            .nunique()
+            .reset_index(name="active_customers")
+        )
+        active["cohort_size"] = active["cohort_month"].map(cohort_sizes)
+        active["retention_pct"] = active["active_customers"] / active["cohort_size"] * 100
+
+        matrix = active.pivot(index="cohort_month", columns="month_offset", values="retention_pct")
+
+        # A cohort that hasn't had enough elapsed time to reach a given month
+        # offset must show as "no data yet" (NaN), never as "0% retained" —
+        # otherwise recent cohorts look like total churn when they simply
+        # haven't had the chance to return yet.
+        max_month = orders["order_month"].max()
+        for cohort_month in matrix.index:
+            for offset in matrix.columns:
+                if cohort_month + offset > max_month:
+                    matrix.loc[cohort_month, offset] = float("nan")
+        return matrix
