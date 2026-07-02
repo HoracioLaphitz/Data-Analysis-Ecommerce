@@ -52,3 +52,26 @@ def run_analysis(df: pd.DataFrame) -> dict:
             "states": fig_states,
         },
     }
+
+
+def delay_distribution(df: pd.DataFrame) -> pd.DataFrame:
+    return df[["delivery_delay_days"]].assign(
+        delivery_delay_days=df["delivery_delay_days"].clip(-30, 60))
+
+
+def late_rate_by_state(df: pd.DataFrame) -> pd.DataFrame:
+    return (
+        df.assign(late=df["delivery_delay_days"] > 0)
+        .groupby("customer_state")["late"].mean().mul(100).round(1)
+        .reset_index()
+        .rename(columns={"late": "late_rate"})
+        .sort_values("late_rate", ascending=False)
+        .reset_index(drop=True)
+    )
+
+
+def distance_delay_sample(df: pd.DataFrame, n: int = 5000, seed: int = 42) -> pd.DataFrame:
+    cols = df[["distance_km", "delivery_delay_days"]]
+    if len(cols) <= n:
+        return cols.reset_index(drop=True)
+    return cols.sample(n, random_state=seed).reset_index(drop=True)
