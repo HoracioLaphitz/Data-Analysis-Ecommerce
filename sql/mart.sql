@@ -2,7 +2,8 @@
 
 DROP TABLE IF EXISTS dim_customers;
 CREATE TABLE dim_customers AS
-SELECT customer_id, customer_state, customer_city, lat, lng FROM stg_customers;
+SELECT customer_id, customer_unique_id, customer_state, customer_city, lat, lng
+FROM stg_customers;
 
 DROP TABLE IF EXISTS dim_sellers;
 CREATE TABLE dim_sellers AS

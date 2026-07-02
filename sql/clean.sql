@@ -13,6 +13,7 @@ GROUP BY geolocation_zip_code_prefix;
 DROP TABLE IF EXISTS stg_customers;
 CREATE TABLE stg_customers AS
 SELECT c.customer_id,
+       c.customer_unique_id,
        c.customer_state,
        LOWER(TRIM(c.customer_city)) AS customer_city,
        g.lat, g.lng

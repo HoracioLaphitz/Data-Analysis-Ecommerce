@@ -37,3 +37,6 @@ SELECT order_id FROM fact_orders WHERE distance_km < 0;
 
 -- CHECK: fact_non_empty
 SELECT 1 WHERE (SELECT COUNT(*) FROM fact_orders) = 0;
+
+-- CHECK: dim_customers_customer_unique_id_not_null
+SELECT customer_id FROM dim_customers WHERE customer_unique_id IS NULL;

@@ -17,12 +17,21 @@
 | order_status | TEXT | raw_orders | = 'delivered' | no |
 | order_purchase_timestamp | TEXT | raw_orders | — | no |
 
-## dim_sellers / dim_customers
+## dim_sellers
 | column | type | cleaning |
 |--------|------|----------|
-| *_id | TEXT | PK, not null, unique |
-| *_state | TEXT | — |
-| *_city | TEXT | LOWER(TRIM()) |
+| seller_id | TEXT | PK, not null, unique |
+| seller_state | TEXT | — |
+| seller_city | TEXT | LOWER(TRIM()) |
+| lat, lng | REAL | ZIP centroid (mean) |
+
+## dim_customers
+| column | type | cleaning |
+|--------|------|----------|
+| customer_id | TEXT | PK, not null, unique — grain: one row per **order** |
+| customer_unique_id | TEXT | not null — grain: one row per **person**. Olist issues a new `customer_id` per order, so `customer_id` alone cannot detect repeat customers. Always group by `customer_unique_id` for RFM/cohort/retention analysis. |
+| customer_state | TEXT | — |
+| customer_city | TEXT | LOWER(TRIM()) |
 | lat, lng | REAL | ZIP centroid (mean) |
 
 ## dim_products
