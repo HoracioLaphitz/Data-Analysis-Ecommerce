@@ -16,7 +16,7 @@ pipenv install
 # One-time: build the SQLite data mart from raw Kaggle CSVs in data/
 python -m src.etl
 
-# Run the app (requires NVAPI env var — NVIDIA NIM API key)
+# Run the app
 streamlit run app.py
 
 # Train the churn model (requires the data mart to exist)
@@ -27,8 +27,6 @@ pytest tests/ -v
 pytest tests/test_mart.py -v          # single file
 pytest tests/test_mart.py::test_name  # single test
 ```
-
-Note: `Pipfile` currently lists `langchain-groq`/`groq` under `[packages]`, but the actual code (`src/agent.py`) imports `langchain_nvidia_ai_endpoints`, which is only declared in `requirements.txt`. If `pipenv install` leaves `ChatNVIDIA` unavailable, install `langchain-nvidia-ai-endpoints` manually or use `requirements.txt`.
 
 ## Architecture
 
@@ -52,11 +50,14 @@ Run this once per dataset change; the app and churn pipeline only ever read from
 
 `SalesMart` is the **only** place that writes raw SQL against the mart at runtime. It always returns DataFrames, never connections/cursors. `src/loader.py`, `src/analysis.py`, and the churn modules all go through it — don't reach for `sqlite3` directly outside `etl.py`/`mart.py`.
 
-### 3. Streamlit app (`app.py` → `src/analysis.py`, `src/charts.py`, `src/agent.py`)
+### 3. Streamlit app (`app.py` → `src/analysis.py`, `src/charts.py`, `src/segmentation.py`)
 
-- `analysis.run_analysis(df)` computes KPIs and builds the three Plotly figures shown in the "Analysis" tab.
-- `agent.build_agent(df, api_key)` wraps `langchain_experimental`'s pandas dataframe agent around `ChatNVIDIA` (`meta/llama-3.3-70b-instruct`) with a Spanish-language system prefix, driving the "Questions" chat tab. `allow_dangerous_code=True` is required by that agent (it executes generated pandas code) — this app is a portfolio/demo project, not a treat-input-as-hostile service.
-- Both `df` (from `load_data`) and the built agent are `st.cache_data`/`st.cache_resource`-wrapped in `app.py`.
+Pure-analytics app, six tabs: 📊 Analysis, 🚚 Logística, ⭐ Reviews, 📉 Churn Sellers, 💰 Ventas, 🧩 Segmentación.
+
+- `analysis.run_analysis(df)` computes KPIs and builds the three Plotly figures shown in the "Analysis" tab; the Logística/Reviews/Ventas tabs call other `analysis.py` aggregation functions (e.g. `delay_distribution`, `late_rate_by_state`, `monthly_aov`) and render them with `src/charts.py` builders (`bar_chart`, `line_chart`, `histogram_chart`, `scatter_chart`, `heatmap_chart`).
+- The "Segmentación" tab consumes `src/segmentation.py` (`RFMBuilder`, `CohortBuilder`, `compute_kpis`) for RFM segments, monthly retention cohorts, and revenue-risk KPIs.
+- The "Churn Sellers" tab loads trained artifacts from `models/` (`model.pkl`, `metrics.json`, `feature_importance.json`) via `src/churn/model.py` and `src/churn/predict.py`; if the artifacts don't exist (e.g. `train.py` hasn't been run), it degrades to a warning instead of failing.
+- `df` (from `load_data`) and the churn artifacts are `st.cache_data`/`st.cache_resource`-wrapped in `app.py`.
 
 ### 4. Churn pipeline (`src/churn/`)
 

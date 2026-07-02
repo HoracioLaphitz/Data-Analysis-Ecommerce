@@ -1,7 +1,16 @@
 # AI Sales Assistant
 
-Chat en lenguaje natural sobre 100k+ órdenes de e-commerce de Brasil.
-Analizá datos de Olist con LangChain + NVIDIA NIM llama3-70b desde una interfaz Streamlit.
+Analytics de e-commerce sobre 100k+ órdenes de Brasil (dataset Olist), con seis tabs de
+insights en Streamlit y un pipeline de churn prediction para vendedores.
+
+## Tabs de la app
+
+- 📊 **Analysis** — KPIs generales (revenue, órdenes, AOV, distancia, demoras) y tendencias mensuales.
+- 🚚 **Logística** — distribución de demoras de entrega, tasa de entregas tardías por estado y distancia vs. demora.
+- ⭐ **Reviews** — distribución de review scores y su relación con la demora de entrega.
+- 📉 **Churn Sellers** — métricas del modelo de churn (AUC-ROC, recall), feature importance y ranking de vendedores en riesgo con recomendaciones.
+- 💰 **Ventas** — ticket promedio mensual (AOV) y peso del flete por categoría.
+- 🧩 **Segmentación** — RFM, cohortes de retención mensual y KPIs de riesgo de revenue.
 
 ## Setup local
 
@@ -24,6 +33,12 @@ Copiá estos archivos en `data/`:
 pip install -r requirements.txt
 ```
 
+Para correr los tests también necesitás las dependencias de desarrollo:
+
+```bash
+pip install -r requirements-dev.txt
+```
+
 ### 3. Build the Data Mart (once)
 
 Download the [Olist dataset from Kaggle](https://www.kaggle.com/datasets/olistbr/brazilian-ecommerce)
@@ -34,18 +49,18 @@ python -m src.etl
 ```
 
 This creates `data/olist_mart.db` (Star Schema SQLite). Run this once — the app reads only from the DB.
+La app no funciona sin este archivo (no está en el repo, junto con los CSV crudos).
 
-### 4. Configurar API key
+### 4. (Opcional) Entrenar el modelo de churn
 
-Obtené tu NVIDIA NIM API key gratuita en https://build.nvidia.com/
+Para habilitar la tab de Churn Sellers:
 
 ```bash
-# Windows PowerShell
-$env:NVAPI="tu_api_key_aqui"
-
-# macOS / Linux
-export NVAPI="tu_api_key_aqui"
+python -m src.churn.train
 ```
+
+Esto genera los artifacts en `models/` (`model.pkl`, `metrics.json`, `feature_importance.json`,
+`drift_reference.json`). Si no existen, la tab muestra una advertencia y no rompe la app.
 
 ### 5. Correr la app
 
@@ -64,13 +79,11 @@ pytest tests/ -v
 1. Fork este repo
 2. Ir a https://streamlit.io/cloud → New app → seleccionar este repo
 3. Main file: `Proyectos/ai-sales-assistant/app.py`
-4. Secrets: `NVAPI = "tu_key"`
 
 ## Stack
 
-- LangChain + langchain-experimental (Pandas DataFrame Agent)
-- NVIDIA NIM llama3-70b
 - Streamlit
 - Plotly Express
 - Pandas
+- Scikit-learn + XGBoost (churn prediction)
 - Dataset: Brazilian E-Commerce Public Dataset (Olist) via Kaggle

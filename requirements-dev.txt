@@ -1,0 +1,4 @@
+-r requirements.txt
+pytest>=8.2.0
+pytest-mock>=3.14.0
+ydata-profiling>=4.6.0
