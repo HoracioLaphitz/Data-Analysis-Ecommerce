@@ -4,6 +4,9 @@ from dotenv import load_dotenv
 from src.loader import load_data
 from src.analysis import run_analysis
 from src.agent import build_agent, ask
+from src.mart import SalesMart
+from src.segmentation import RFMBuilder, CohortBuilder, compute_kpis
+from src.charts import heatmap_chart
 
 load_dotenv()
 
@@ -44,6 +47,15 @@ def get_agent(_df, api_key):
     return build_agent(_df, api_key)
 
 
+@st.cache_data
+def get_segmentation(window_months):
+    mart = SalesMart(DB_PATH)
+    rfm = RFMBuilder().build(mart)
+    cohorts = CohortBuilder().build(mart, window_months=window_months)
+    kpis = compute_kpis(mart, window_months=window_months)
+    return rfm, cohorts, kpis
+
+
 api_key = os.environ.get("NVAPI", "")
 
 if not api_key:
@@ -57,7 +69,7 @@ analysis = get_analysis(df)
 kpis = analysis["kpis"]
 figs = analysis["figs"]
 
-tab1, tab2 = st.tabs(["📊 Analysis", "💬 Questions"])
+tab1, tab2, tab3 = st.tabs(["📊 Analysis", "💬 Questions", "🧩 Segmentación"])
 
 with tab1:
     col1, col2, col3 = st.columns(3)
@@ -121,3 +133,39 @@ with tab2:
                         st.markdown(f"**Result:** `{str(observation)[:200]}`")
 
         st.session_state.messages.append({"role": "assistant", "content": result["answer"]})
+
+with tab3:
+    window = st.radio(
+        "Ventana de retención", [6, 12], index=1,
+        horizontal=True, format_func=lambda m: f"{m} meses",
+    )
+    with st.spinner("Calculando segmentación..."):
+        rfm, cohorts, kpis_seg = get_segmentation(window)
+
+    st.caption(
+        "Solo 3.12% de los clientes de Olist repite compra — "
+        "la retención y los segmentos reflejan ese comportamiento real, "
+        "no un error de cálculo."
+    )
+
+    col1, col2, col3 = st.columns(3)
+    col1.metric("Tasa de repetición global", f"{kpis_seg['global_repeat_rate']}%")
+    col2.metric("Revenue en riesgo (At Risk + Hibernating)", f"R$ {kpis_seg['risk_segment_revenue']:,.0f}")
+    m3_val = kpis_seg["retention"].get("M3")
+    col3.metric("Retención M3 promedio", f"{m3_val}%" if m3_val is not None else "N/A")
+
+    st.divider()
+
+    cohorts_display = cohorts.copy()
+    cohorts_display.index = cohorts_display.index.astype(str)
+    st.plotly_chart(
+        heatmap_chart(cohorts_display, f"Retención por cohorte mensual ({window} meses)"),
+        use_container_width=True,
+    )
+
+    st.divider()
+
+    segment_table = rfm["segment"].value_counts().reset_index()
+    segment_table.columns = ["Segmento", "Clientes"]
+    segment_table["% Revenue"] = segment_table["Segmento"].map(kpis_seg["revenue_pct_by_segment"])
+    st.dataframe(segment_table, use_container_width=True)
