@@ -29,3 +29,17 @@ def test_duplicate_seller_pk_raises(tmp_path):
     with pytest.raises(DataQualityError) as exc:
         build_mart(data_dir=str(dirty), db_path=str(tmp_path / "d.db"))
     assert "seller" in str(exc.value).lower()
+
+
+def test_null_customer_unique_id_raises(tmp_path):
+    from src.etl import build_mart
+    from src.errors import DataQualityError
+    dirty = tmp_path / "dirty"
+    shutil.copytree(FIXTURES, dirty)
+    # inject a row with a blank customer_unique_id (parses as NULL)
+    customers = dirty / "olist_customers_dataset.csv"
+    with open(customers, "a", encoding="utf-8") as f:
+        f.write("c99,,01000,sao paulo,SP\n")
+    with pytest.raises(DataQualityError) as exc:
+        build_mart(data_dir=str(dirty), db_path=str(tmp_path / "d.db"))
+    assert "customer_unique_id" in str(exc.value).lower()

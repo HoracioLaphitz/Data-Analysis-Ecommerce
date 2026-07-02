@@ -62,3 +62,12 @@ def test_indexes_exist(tmp_db):
     for name in ("idx_fact_seller", "idx_fact_customer",
                  "idx_fact_date", "idx_fact_product"):
         assert name in idx
+
+
+def test_dim_customers_has_unique_id(tmp_db):
+    from src.etl import build_mart
+    build_mart(data_dir=FIXTURES, db_path=tmp_db)
+    conn = sqlite3.connect(tmp_db)
+    cols = {r[1] for r in conn.execute("PRAGMA table_info(dim_customers)").fetchall()}
+    conn.close()
+    assert "customer_unique_id" in cols

@@ -82,3 +82,44 @@ def churn_mart(tmp_path):
     conn.commit()
     conn.close()
     return SalesMart(db)
+
+
+@pytest.fixture
+def segmentation_mart(tmp_path):
+    """SalesMart over a hand-built mart with controlled repeat-purchase and
+    recency patterns, to exercise RFM scoring and cohort-masking edge cases.
+
+    u1: two orders, Jan and Mar 2018 -> repeat customer, cohort=2018-01
+    u2: one order, Jan 2018          -> single-purchase, cohort=2018-01
+    u3: one order, Jul 2018 (the last month in this fixture) -> cohort=2018-07,
+        too recent to have reached month_offset=3 -> must be NaN, not 0.
+    """
+    import sqlite3
+    from src.mart import SalesMart
+    db = str(tmp_path / "segmentation.db")
+    conn = sqlite3.connect(db)
+    conn.executescript(
+        """
+        CREATE TABLE fact_orders (
+            order_id TEXT, customer_id TEXT, order_purchase_timestamp TEXT,
+            payment_value REAL);
+        CREATE TABLE dim_customers (
+            customer_id TEXT, customer_unique_id TEXT);
+        """
+    )
+    conn.executemany(
+        "INSERT INTO fact_orders VALUES (?,?,?,?)",
+        [
+            ("o1", "c1", "2018-01-10 10:00:00", 100.0),
+            ("o2", "c1b", "2018-03-15 10:00:00", 50.0),
+            ("o3", "c2", "2018-01-20 10:00:00", 200.0),
+            ("o4", "c3", "2018-07-05 10:00:00", 80.0),
+        ],
+    )
+    conn.executemany(
+        "INSERT INTO dim_customers VALUES (?,?)",
+        [("c1", "u1"), ("c1b", "u1"), ("c2", "u2"), ("c3", "u3")],
+    )
+    conn.commit()
+    conn.close()
+    return SalesMart(db)
