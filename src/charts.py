@@ -24,3 +24,15 @@ def states_bar_chart(df: pd.DataFrame, state_col: str, value_col: str, title: st
         y=value_col,
         title=title,
     )
+
+
+def heatmap_chart(matrix: pd.DataFrame, title: str) -> Figure:
+    fig = px.imshow(
+        matrix,
+        labels=dict(x="Meses desde primera compra", y="Cohorte", color="Retención %"),
+        color_continuous_scale="Blues",
+        title=title,
+        text_auto=".1f",
+    )
+    fig.update_layout(plot_bgcolor="rgba(0,0,0,0)", paper_bgcolor="rgba(0,0,0,0)")
+    return fig
