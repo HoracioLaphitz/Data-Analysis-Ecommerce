@@ -85,3 +85,44 @@ class CohortBuilder:
                 if cohort_month + offset > max_month:
                     matrix.loc[cohort_month, offset] = float("nan")
         return matrix
+
+
+def compute_kpis(mart, window_months: int = 12) -> dict:
+    rfm = RFMBuilder().build(mart)
+    cohorts = CohortBuilder().build(mart, window_months=window_months)
+
+    total_monetary = rfm["monetary"].sum()
+    revenue_pct_by_segment = (
+        rfm.groupby("segment")["monetary"].sum() / total_monetary * 100
+    ).round(1).to_dict()
+    segment_sizes = rfm["segment"].value_counts().to_dict()
+
+    risk_segments = ["At Risk", "Hibernating"]
+    risk_revenue = rfm.loc[rfm["segment"].isin(risk_segments), "monetary"].sum()
+
+    global_repeat_rate = round((rfm["frequency"] > 1).mean() * 100, 2)
+
+    retention = {}
+    for m in (1, 3, 6, 12):
+        if m in cohorts.columns:
+            value = cohorts[m].mean(skipna=True)
+            retention[f"M{m}"] = round(value, 1) if pd.notna(value) else None
+        else:
+            retention[f"M{m}"] = None
+
+    best_cohort = worst_cohort = None
+    if 3 in cohorts.columns:
+        m3 = cohorts[3].dropna()
+        if not m3.empty:
+            best_cohort = str(m3.idxmax())
+            worst_cohort = str(m3.idxmin())
+
+    return {
+        "segment_sizes": segment_sizes,
+        "revenue_pct_by_segment": revenue_pct_by_segment,
+        "global_repeat_rate": global_repeat_rate,
+        "risk_segment_revenue": round(risk_revenue, 2),
+        "retention": retention,
+        "best_cohort_m3": best_cohort,
+        "worst_cohort_m3": worst_cohort,
+    }
