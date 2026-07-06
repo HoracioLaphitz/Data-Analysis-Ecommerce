@@ -19,7 +19,7 @@ insights en Streamlit y un pipeline de churn prediction para vendedores.
 Descargá el dataset de Kaggle:
 https://www.kaggle.com/datasets/olistbr/brazilian-ecommerce
 
-Copiá estos archivos en `data/`:
+ `data/`:
 - `olist_orders_dataset.csv`
 - `olist_order_items_dataset.csv`
 - `olist_products_dataset.csv`
@@ -74,11 +74,6 @@ streamlit run app.py
 pytest tests/ -v
 ```
 
-## Deploy en Streamlit Cloud
-
-1. Fork este repo
-2. Ir a https://streamlit.io/cloud → New app → seleccionar este repo
-3. Main file: `Proyectos/ai-sales-assistant/app.py`
 
 ## Stack
 
