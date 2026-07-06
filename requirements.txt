@@ -1,5 +1,6 @@
 streamlit>=1.35.0
-pyarrow>=14,<19
+pyarrow>=14,<19; sys_platform == "win32" and python_version < "3.14"
+pyarrow>=14; sys_platform != "win32" or python_version >= "3.14"
 pandas>=2.2.0
 plotly>=5.22.0
 scikit-learn>=1.4.0
