@@ -1,6 +1,6 @@
-# AI Sales Assistant
+# Analytics de e-commerce
 
-Analytics de e-commerce sobre 100k+ órdenes de Brasil (dataset Olist), con seis tabs de
+Proyecto desarrollado sobre 100k+ órdenes de Brasil (dataset Olist), con seis tabs de
 insights en Streamlit y un pipeline de churn prediction para vendedores.
 
 ## Tabs de la app
