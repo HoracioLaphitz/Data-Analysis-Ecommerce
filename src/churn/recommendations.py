@@ -12,11 +12,11 @@ class RecommendationEngine:
         recs: list[str] = []
         if seller_features.get("pct_late", 0) > self.LATE_THRESHOLD:
             recs.append(
-                "Improve logistics: over 30% of deliveries are late.")
+                "Mejorar logística: más del 30% de las entregas llegan tarde.")
         if seller_features.get("avg_review_score", 5) < self.LOW_REVIEW_THRESHOLD:
             recs.append(
-                "Address quality: low customer satisfaction (avg review < 3).")
+                "Atender calidad: baja satisfacción del cliente (review promedio < 3).")
         if seller_features.get("recency_days", 0) > self.INACTIVE_DAYS:
             recs.append(
-                "Re-engage: seller inactive for 60+ days.")
+                "Reactivar: vendedor inactivo hace más de 60 días.")
         return recs

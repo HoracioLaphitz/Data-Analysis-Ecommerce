@@ -19,21 +19,21 @@ if not os.path.exists(DB_PATH):
     DB_PATH = os.path.join("data", "olist_mart_slim.db")
 
 st.set_page_config(
-    page_title="AI Sales Assistant",
+    page_title="Analítica Ecommerce",
     page_icon="🫡",
     layout="wide",
 )
 
-st.title("🤖 AI Sales Assistant")
+st.title("Proyecto de Análisis de Datos sobre Ecommerce")
 st.caption(
-    "Olist Brazilian E-Commerce · Analytics & Churn Prediction · "
-    "[Code on GitHub](https://github.com/HoracioLaphitz/ai-sales-assistant)"
+    "Olist Brazilian E-Commerce · Analítica y Predicción de Abandono · "
+    "[Código en GitHub](https://github.com/HoracioLaphitz/ai-sales-assistant)"
 )
 
 if not os.path.exists(DB_PATH):
     st.error(
-        "❌ Data mart not found. "
-        "Run `python -m src.etl` once to build it before starting the app."
+        "❌ No se encontró el data mart. "
+        "Ejecutá `python -m src.etl` una vez para construirlo antes de iniciar la app."
     )
     st.stop()
 
@@ -81,7 +81,7 @@ def get_at_risk_sellers():
     return scorer.at_risk(mart, mart.max_order_date)
 
 
-with st.spinner("Loading Olist data (~100k orders)..."):
+with st.spinner("Cargando datos de Olist (~100k órdenes)..."):
     df = get_data()
 
 analysis = get_analysis(df)
@@ -89,21 +89,21 @@ kpis = analysis["kpis"]
 figs = analysis["figs"]
 
 tab_analysis, tab_logistics, tab_reviews, tab_churn, tab_sales, tab_seg = st.tabs([
-    "📊 Analysis", "🚚 Logística", "⭐ Reviews",
-    "📉 Churn Sellers", "💰 Ventas", "🧩 Segmentación",
+    "📊 Análisis", "🚚 Logística", "⭐ Reseñas",
+    "📉 Abandono de Vendedores", "💰 Ventas", "🧩 Segmentación",
 ])
 
 with tab_analysis:
     col1, col2, col3 = st.columns(3)
-    col1.metric("Total Revenue", f"R$ {kpis['total_revenue']:,.0f}")
-    col2.metric("Delivered Orders", f"{kpis['total_orders']:,}")
-    col3.metric("Average Order Value", f"R$ {kpis['aov']:,.2f}")
+    col1.metric("Ingresos Totales", f"R$ {kpis['total_revenue']:,.0f}")
+    col2.metric("Órdenes Entregadas", f"{kpis['total_orders']:,}")
+    col3.metric("Ticket Promedio", f"R$ {kpis['aov']:,.2f}")
 
     col4, col5, col6 = st.columns(3)
-    col4.metric("Avg Distance (km)", f"{kpis['avg_distance_km']:,.1f}")
+    col4.metric("Distancia Promedio (km)", f"{kpis['avg_distance_km']:,.1f}")
     delay = kpis["avg_delivery_delay_days"]
-    col5.metric("Avg Delivery Delay", f"{'+' if delay > 0 else ''}{delay:.1f} days")
-    col6.metric("Late Delivery Rate", f"{kpis['late_delivery_rate']:.1f}%")
+    col5.metric("Demora Promedio de Entrega", f"{'+' if delay > 0 else ''}{delay:.1f} días")
+    col6.metric("Tasa de Entregas Tardías", f"{kpis['late_delivery_rate']:.1f}%")
 
     st.divider()
 
@@ -138,19 +138,19 @@ with tab_reviews:
     with col_a:
         st.plotly_chart(
             bar_chart(review_distribution(df), x="review_score", y="orders",
-                      title="Distribución de review scores"),
+                      title="Distribución de puntajes de reseña"),
             use_container_width=True)
     with col_b:
         st.plotly_chart(
             bar_chart(delay_by_review_score(df), x="review_score", y="avg_delay",
-                      title="Demora promedio por review score (días)"),
+                      title="Demora promedio por puntaje de reseña (días)"),
             use_container_width=True)
 
 with tab_churn:
     if not os.path.exists(os.path.join(MODELS_DIR, "model.pkl")):
         st.warning(
-            "⚠️ Churn model not trained. Run `python -m src.churn.train` "
-            "once, then reload this page."
+            "⚠️ El modelo de abandono no está entrenado. Ejecutá "
+            "`python -m src.churn.train` una vez y recargá esta página."
         )
     else:
         _, metrics, importance = get_churn_artifacts()
@@ -158,7 +158,7 @@ with tab_churn:
         col1, col2, col3 = st.columns(3)
         col1.metric("AUC-ROC", f"{xgb['auc_roc']:.3f}")
         col2.metric("Recall", f"{xgb['recall']:.3f}")
-        col3.metric("Churn rate", f"{metrics['churn_rate']*100:.1f}%")
+        col3.metric("Tasa de Abandono", f"{metrics['churn_rate']*100:.1f}%")
 
         col_a, col_b = st.columns(2)
         with col_a:
@@ -168,9 +168,14 @@ with tab_churn:
             st.plotly_chart(confusion_matrix_chart(xgb["confusion_matrix"]),
                             use_container_width=True)
 
-        st.subheader("Top 20 sellers en riesgo")
+        st.subheader("Top 20 vendedores en riesgo")
         at_risk = get_at_risk_sellers().head(20).copy()
         at_risk["recommendations"] = at_risk["recommendations"].str.join(" · ")
+        at_risk = at_risk.rename(columns={
+            "seller_id": "ID Vendedor",
+            "churn_probability": "Probabilidad de Abandono",
+            "recommendations": "Recomendaciones",
+        })
         st.dataframe(at_risk, use_container_width=True)
 
 with tab_sales:
@@ -200,7 +205,7 @@ with tab_seg:
 
     col1, col2, col3 = st.columns(3)
     col1.metric("Tasa de repetición global", f"{kpis_seg['global_repeat_rate']}%")
-    col2.metric("Revenue en riesgo (At Risk + Hibernating)", f"R$ {kpis_seg['risk_segment_revenue']:,.0f}")
+    col2.metric("Ingresos en Riesgo (En Riesgo + Hibernando)", f"R$ {kpis_seg['risk_segment_revenue']:,.0f}")
     m3_val = kpis_seg["retention"].get("M3")
     col3.metric("Retención M3 promedio", f"{m3_val}%" if m3_val is not None else "N/A")
 
@@ -215,7 +220,16 @@ with tab_seg:
 
     st.divider()
 
+    SEGMENT_LABELS_ES = {
+        "Champions": "Campeones",
+        "Loyal": "Leales",
+        "New Customers": "Clientes Nuevos",
+        "At Risk": "En Riesgo",
+        "Hibernating": "Hibernando",
+        "Need Attention": "Necesitan Atención",
+    }
     segment_table = rfm["segment"].value_counts().reset_index()
     segment_table.columns = ["Segmento", "Clientes"]
-    segment_table["% Revenue"] = segment_table["Segmento"].map(kpis_seg["revenue_pct_by_segment"])
+    segment_table["% Ingresos"] = segment_table["Segmento"].map(kpis_seg["revenue_pct_by_segment"])
+    segment_table["Segmento"] = segment_table["Segmento"].map(SEGMENT_LABELS_ES)
     st.dataframe(segment_table, use_container_width=True)

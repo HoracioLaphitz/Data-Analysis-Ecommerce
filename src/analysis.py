@@ -17,7 +17,7 @@ def run_analysis(df: pd.DataFrame) -> dict:
         .rename(columns={"payment_value": "revenue"})
         .sort_values("month")
     )
-    fig_monthly = line_chart(monthly_agg, x="month", y="revenue", title="Revenue mensual (R$)")
+    fig_monthly = line_chart(monthly_agg, x="month", y="revenue", title="Ingresos mensuales (R$)")
 
     top_cats = (
         df.groupby("product_category_name_english")["payment_value"].sum()
@@ -27,7 +27,7 @@ def run_analysis(df: pd.DataFrame) -> dict:
         .head(10)
     )
     fig_categories = bar_chart(top_cats, x="product_category_name_english", y="revenue",
-                               title="Top 10 categorías por revenue (R$)")
+                               title="Top 10 categorías por ingresos (R$)")
 
     by_state = (
         df.groupby("customer_state")["payment_value"].sum()
@@ -35,7 +35,7 @@ def run_analysis(df: pd.DataFrame) -> dict:
         .rename(columns={"payment_value": "revenue"})
     )
     fig_states = states_bar_chart(by_state, state_col="customer_state",
-                                  value_col="revenue", title="Revenue por estado (R$)")
+                                  value_col="revenue", title="Ingresos por estado (R$)")
 
     return {
         "kpis": {
