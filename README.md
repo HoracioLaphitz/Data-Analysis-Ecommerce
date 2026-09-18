@@ -1,5 +1,7 @@
 # Analytics de e-commerce
 
+## Descripción
+
 Proyecto desarrollado sobre 100k+ órdenes de Brasil (dataset Olist), con seis tabs de
 insights en Streamlit y un pipeline de churn prediction para vendedores.
 
@@ -82,3 +84,17 @@ pytest tests/ -v
 - Pandas
 - Scikit-learn + XGBoost (churn prediction)
 - Dataset: Brazilian E-Commerce Public Dataset (Olist) via Kaggle
+
+## Diagrama
+
+[Explorar la arquitectura interactiva en GitDiagram](https://gitdiagram.com/HoracioLaphitz/Data-Analysis-Ecommerce)
+
+```mermaid
+flowchart LR
+  A[".atl + .devcontainer + .gitignore"] --> B["Procesamiento de Data-Analysis-Ecommerce"]
+  B --> C["Resultados del proyecto"]
+```
+
+## Tecnologías
+
+- Python
